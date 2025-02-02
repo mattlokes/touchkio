@@ -94,6 +94,11 @@ const promptArgs = async (proc) => {
       fallback: "1.25",
     },
     {
+      key: "web_widget",
+      question: "Enter WEB widget enabled",
+      fallback: "true",
+    },
+    {
       key: "mqtt",
       question: "\nConnect to MQTT Broker?",
       fallback: "y/N",
