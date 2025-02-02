@@ -11,6 +11,7 @@ Moreover, the device running the **kiosk application** also offers several **Hom
 ## Features
 - [x] Fast and easy setup.
 - [x] Remember login credentials.
+- [x] Side panel widget for kiosk control.
 - [x] Touch friendly web browser interface.
 - [x] Configurable zoom and theme support. 
 - [x] Single-tap screen wake-up functionality.
@@ -27,8 +28,8 @@ Additionally, a **MQTT endpoint** can be defined, allowing the application to pr
 
 ## Setup
 Before you begin, make sure that you have a Linux device configured and operational with a [compatible](https://github.com/leukipp/touchkio/blob/main/HARDWARE.md) Touch Display.
-This guide assumes that you are using a Raspberry Pi with the latest version of Raspberry Pi OS **(64-bit)**, along with a desktop environment (preferred using labwc).
-However, the **.deb** setup is also compatible with any other Debian based system.
+This guide assumes that you are using a Raspberry Pi with the latest version of Raspberry Pi OS **(64-bit)**, along with a desktop environment (preferred using **labwc**).
+However, the **.deb** setup procedure is also compatible with any other Debian based 64-bit system.
 
 ### Optional
 To utilize the sensor features of your device through Home Assistant, it's essential to have a **MQTT broker running** and the **MQTT integration installed** on your Home Assistant instance.
@@ -41,7 +42,9 @@ For a comprehensive guide on setting up MQTT with Home Assistant, please refer t
 ## Installation
 On the first run of the application, you may encounter a **setup procedure** and the Home Assistant **login screen**.
 It's recommended to create a **dedicated user** (local access only) for your kiosk device.
-You might also need a keyboard or remote VNC access to input these credentials once.
+
+You might also need a physical keyboard or remote VNC access to input these credentials once.
+If your hardware is [supported](https://github.com/leukipp/touchkio/blob/main/HARDWARE.md) you may be able to activate the on-screen keyboard using the side [widget](https://github.com/leukipp/touchkio/issues/16).
 
 #### Option 1 - The easy way
 Run this command to download and install the latest **.deb** (arm64 or x64) release.
@@ -54,6 +57,7 @@ If you are paranoid, or smart, or both, have a look into the [install.sh](https:
 <details><summary>Alternatives</summary><div>
 
 #### Option 2 - The standard way
+When connected via SSH, it's necessary to export the display variables first, as outlined in the [development](https://github.com/leukipp/touchkio?tab=readme-ov-file#development) section.
 The [install.sh](https://github.com/leukipp/touchkio/blob/main/install.sh) script mentioned above performs the following tasks (and you just have to do it manually):
 - [Download](https://github.com/leukipp/touchkio/releases/latest) the latest version file that is suitable for your architecture (arm64 or x64).
   - Debian (**deb**): Open a terminal and execute the following command to install the application, e.g:
@@ -68,7 +72,7 @@ The [install.sh](https://github.com/leukipp/touchkio/blob/main/install.sh) scrip
 Pre-built release files are available for arm64 and x64 Linux systems.
 If you are using a different architecture, you can still utilize this repository to build your own application.
 
-For more information, please refer to the [development](https://github.com/leukipp/touchkio?tab=readme-ov-file#development) section. However this could do the job:
+For more information, please refer to the [development](https://github.com/leukipp/touchkio?tab=readme-ov-file#development) section, however this will do the job:
 ```bash
 yarn build
 ```
@@ -81,17 +85,18 @@ These default arguments are stored in `~/.config/touchkio/Arguments.json`, where
 
 ### WEB
 The available arguments to control the kiosk application via terminal are as follows: 
-| Name                     | Default | Description                                            |
-| ------------------------ | ------- | ------------------------------------------------------ |
-| `--web-url` (Required)   | -       | Url of the Home Assistant instance (HTTP(S)://IP:PORT) |
-| `--web-theme` (Optional) | `dark`  | Theme settings of the web browser (`light` or `dark`)  |
-| `--web-zoom` (Optional)  | `1.25`  | Zoom settings of the web browser (`1.0` is `100%`)     |
+| Name                      | Default | Description                                            |
+| ------------------------- | ------- | ------------------------------------------------------ |
+| `--web-url` (Required)    | -       | Url of the Home Assistant instance (HTTP(S)://IP:PORT) |
+| `--web-theme` (Optional)  | `dark`  | Theme settings of the web browser (`light` or `dark`)  |
+| `--web-zoom` (Optional)   | `1.25`  | Zoom settings of the web browser (`1.0` is `100%`)     |
+| `--web-widget` (Optional) | `true`  | Enables the sidebar widget (`true` or `false`)         |
 
-These arguments allow you to customize the appearance of the web browser window.
+These arguments allow you to customize the appearance of the web browser view.
 
 For example:
 ```bash
-touchkio --web-url=http://192.168.1.42:8123 --web-theme=dark --web-zoom=1.25
+touchkio --web-url=http://192.168.1.42:8123 --web-theme=light --web-zoom=1.0
 ```
 
 ### MQTT
@@ -115,7 +120,7 @@ touchkio --web-url=http://192.168.1.42:8123 --mqtt-url=mqtt://192.168.1.42:1883 
 To create your own local build, you first need to install [Node.js](https://pimylifeup.com/raspberry-pi-nodejs) and [Yarn](https://classic.yarnpkg.com/lang/en/docs/install).
 
 Clone this repository and run `yarn install` to install the dependencies.
-Then use `yarn start` to execute the start script located in [package.json](https://github.com/leukipp/touchkio/blob/main/package.json) file.
+Then use `yarn start` to execute the start script located in the [package.json](https://github.com/leukipp/touchkio/blob/main/package.json) file.
 There you can adjust the `--web-url` and other arguments for development runs.
 
 If you connect to your device via SSH, you may have to export display variables so that the kiosk application can be loaded inside the desktop environment:
@@ -123,6 +128,42 @@ If you connect to your device via SSH, you may have to export display variables 
 export DISPLAY=":0"
 export WAYLAND_DISPLAY="wayland-0"
 ```
+To make this permanent, consider adding the export variables to the `~/.bashrc` file.
+
+### Extensions
+
+<details><summary>You probably won't need this.</summary><div></br>
+
+Incorporating custom extensions and external hardware (like motion sensors, ultrasonic sensors, cameras, relays and switches) via **Raspberry Pi's GPIO/USB** involves several steps. 
+While using external sensors that directly integrate with Home Assistant and by utilizing automation's to interact with **TouchKio via MQTT** is generally easier and **recommended**, here's a rough guide on how to proceed with custom hardware integration:
+
+1. **Install Node.js library**: Use Yarn to add a library that can interact with your hardware (GPIO, USB, etc.):
+    ```bash
+    yarn add [package-name]
+    ```
+    This will update the `package.json` file with the required dependencies.
+
+2. **Import the library**: Open the `hardware.js` file and import the library using:
+    ```javascript
+    const package = require("[package-name]");
+    ```
+    Then implement your custom methods and logic to handle the hardware. Don't forget to export the methods at the end of the file:
+    ```javascript
+    module.exports = { ... };
+    ```
+
+3. **Expose sensors via MQTT**: If you want to publish sensor data through MQTT, implement some init and update methods in the `integration.js` file:
+    ```javascript
+    const initCustomSensor = (client) => { ... }
+    const updateCustomSensor = (client) => { ... }
+    ```
+    To get started have a look at the existing methods. Don't forget to call the custom sensor initialization method inside the global init method, where the MQTT connection is established:
+    ```javascript
+    const init = async (args) => { ... }
+    ```
+    From there, you will need to further refine your code by tinkering with sensor updates. This can be achieved through either periodic update calls or event based triggers. 
+
+</div></details>
 
 ### The nitty gritty
 
@@ -172,15 +213,16 @@ Please have a look into the [hardware](https://github.com/leukipp/touchkio/blob/
 - A webview kiosk window launched in fullscreen mode and loading the specified `--web-url` website should not cause any problems.
 
 **Extended features** become available when the `--mqtt-*` arguments are provided and the hardware is supported:
-- Sensor features that may work out of the box include those that do not require any interaction with the display or keyboard.
+- Sensor features that may work out-of-the-box include those that do not require any interaction with the display or keyboard.
 - If your hardware is not fully compatible there should be no crashes, but you may miss some sensors.
+    - On some Debian based systems (e.g. Ubuntu), the display status control may only be available when using X11.
 
-**Known Issues** that are by-design or for which there is so far no solution:
+**Known Issues** that are by-design or for which there isn't a solution so far:
 - You can use Raspberry Pi's build-in screen blanking functionality, however, if the screen is turned on through Home Assistant after being automatically turned off, it will remain on indefinitely.
   - It's recommended to either use the built-in screen blanking feature or implement a Home Assistant automation (e.g. presence detection) to manage the screen status.
 - Hyperlinks that redirect the browser away from the main window are intentionally disabled.
   - This decision was made to maintain a clean design, as navigation buttons to move back and forth between different sites were not included.
-- On Raspberry Pi's terminal you may see some *ERROR:gbm_wrapper.cc* messages.
+- On the terminal you may see some *ERROR:gbm_wrapper.cc* messages.
   -  This appears to be a [known issue](https://github.com/electron/electron/issues/42322) that currently lacks a fix, but the webview still works.
 
 ## Credits
