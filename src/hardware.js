@@ -6,6 +6,7 @@ const process = require("child_process");
 global.HARDWARE = global.HARDWARE || {
   initialized: false,
   status: "invalid",
+  session: {},
   support: {},
   display: {
     status: {
@@ -32,29 +33,29 @@ global.HARDWARE = global.HARDWARE || {
  * @returns {boolean} Returns true if the initialization was successful.
  */
 const init = async (args) => {
-  if (!args.mqtt_url) {
-    return false;
-  }
-
-  // Check device support
   if (!compatibleDevice()) {
     console.warn("Device not supported");
     return false;
   }
 
   // Init globals
-  HARDWARE.support.session = sessionType();
+  HARDWARE.session.user = sessionUser();
+  HARDWARE.session.type = sessionType();
   HARDWARE.display.status.path = getDisplayStatusPath();
   HARDWARE.support.displayStatus = HARDWARE.display.status.path !== null;
   HARDWARE.display.brightness.path = getDisplayBrightnessPath();
   HARDWARE.support.displayBrightness = HARDWARE.display.brightness.path !== null;
   HARDWARE.display.brightness.max = getDisplayBrightnessMax();
+  HARDWARE.support.keyboardVisibility = processRuns("squeekboard");
   HARDWARE.initialized = true;
   HARDWARE.status = "valid";
 
+  // Show supported features
+  console.log(`Supported: ${JSON.stringify(HARDWARE.support, null, 2)}`);
+
   // Show session infos
-  console.log("\nUser:", os.userInfo().username);
-  console.log("Session:", HARDWARE.support.session);
+  console.log("\nUser:", HARDWARE.session.user);
+  console.log("Session:", HARDWARE.session.type);
 
   // Show device infos
   console.log("\nModel:", getModel());
@@ -73,8 +74,7 @@ const init = async (args) => {
   console.log(`\nDisplay Status [${HARDWARE.display.status.path}]:`, getDisplayStatus());
   console.log(`Display Brightness [${HARDWARE.display.brightness.path}]:`, getDisplayBrightness(), "\n");
 
-  // Check for keyboard visibility changes
-  HARDWARE.support.keyboardVisibility = processRuns("squeekboard");
+  // Check for keyboard visibility
   setKeyboardVisibility("OFF", (reply, error) => {
     if (!reply || error) {
       return;
@@ -143,9 +143,21 @@ const compatibleDevice = () => {
 };
 
 /**
- * Queries the session type for the logged in user.
+ * Gets the session user name using `os.userInfo()`.
  *
- * @returns {string} Returns session type 'x11'/'wayland' or null if an error occurs.
+ * @returns {string|null} Returns session user name or null if an error occurs.
+ */
+const sessionUser = () => {
+  try {
+    return os.userInfo().username;
+  } catch {}
+  return null;
+};
+
+/**
+ * Gets the session type for the user using `loginctl`.
+ *
+ * @returns {string|null} Returns session type 'x11'/'wayland' or null if an error occurs.
  */
 const sessionType = () => {
   if (!commandExists("loginctl")) {
@@ -164,7 +176,7 @@ const sessionType = () => {
  * @returns {bool} Returns true if the session matches the type.
  */
 const session = (type) => {
-  return HARDWARE.support.session == type;
+  return HARDWARE.session.type == type;
 };
 
 /**
@@ -350,7 +362,7 @@ const setDisplayStatus = (status, callback = null) => {
     if (typeof callback === "function") callback(null, "Not supported");
     return;
   }
-  if (status !== "ON" && status !== "OFF") {
+  if (!["ON", "OFF"].includes(status)) {
     console.error("Status must be 'ON' or 'OFF'");
     if (typeof callback === "function") callback(null, "Invalid status");
     return;
@@ -462,6 +474,11 @@ const getKeyboardVisibility = () => {
 const setKeyboardVisibility = (visibility, callback = null) => {
   if (!HARDWARE.support.keyboardVisibility) {
     if (typeof callback === "function") callback(null, "Not supported");
+    return;
+  }
+  if (!["ON", "OFF"].includes(visibility)) {
+    console.error("Visibility must be 'ON' or 'OFF'");
+    if (typeof callback === "function") callback(null, "Invalid visibility");
     return;
   }
   const visible = visibility === "ON";

@@ -3,6 +3,7 @@
 # Determine system architecture
 echo -e "Determining system architecture..."
 
+BITS=$(getconf LONG_BIT)
 case "$(uname -m)" in
     aarch64)
         ARCH="arm64"
@@ -11,11 +12,17 @@ case "$(uname -m)" in
         ARCH="x64"
         ;;
     *)
-        echo "System architecture $(uname -m) not supported."
+        echo "Architecture $(uname -m) running $BITS-bit operating system is not supported."
         exit 1
         ;;
 esac
-echo "System architecture $ARCH is supported."
+
+if [ "$BITS" -ne 64 ]; then
+    echo "Architecture $ARCH running $BITS-bit operating system is not supported."
+    exit 1
+fi
+
+echo "Architecture $ARCH running $BITS-bit operating system is supported."
 
 # Download the latest .deb package
 echo -e "\nDownloading the latest release..."
@@ -23,7 +30,9 @@ echo -e "\nDownloading the latest release..."
 DEB_URL=$(wget -qO- https://api.github.com/repos/leukipp/touchkio/releases/latest | \
 grep -o "\"browser_download_url\": \"[^\"]*_${ARCH}\.deb\"" | \
 sed 's/"browser_download_url": "//;s/"//g')
-DEB_PATH="/tmp/$(basename "$DEB_URL")"
+
+TMP_DIR=$(mktemp -d)
+DEB_PATH="${TMP_DIR}/$(basename "$DEB_URL")"
 
 if [ -z "$DEB_URL" ]; then
     echo "Download url for .deb file not found."

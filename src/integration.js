@@ -17,6 +17,10 @@ const init = async (args) => {
   if (!args.mqtt_url) {
     return false;
   }
+  if (!/^mqtts?:\/\//.test(args.mqtt_url)) {
+    console.error("Please provide the '--mqtt-url' parameter with mqtt(s)");
+    return app.quit();
+  }
   const url = new URL(args.mqtt_url);
   const user = args.mqtt_user ? args.mqtt_user : null;
   const password = args.mqtt_password ? args.mqtt_password : null;
@@ -347,7 +351,7 @@ const initKeyboard = (client) => {
     unique_id: `${INTEGRATION.node}_keyboard`,
     command_topic: `${root}/set`,
     state_topic: `${root}/status`,
-    icon: "mdi:keyboard-close",
+    icon: "mdi:keyboard-close-outline",
     device: INTEGRATION.device,
   };
   client
