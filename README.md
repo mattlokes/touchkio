@@ -220,6 +220,8 @@ Please have a look into the [hardware](https://github.com/leukipp/touchkio/blob/
 **Known Issues** that are by-design or for which there isn't a solution so far:
 - You can use Raspberry Pi's build-in screen blanking functionality, however, if the screen is turned on through Home Assistant after being automatically turned off, it will remain on indefinitely.
   - It's recommended to either use the built-in screen blanking feature or implement a Home Assistant automation (e.g. presence detection) to manage the screen status.
+- When using a Raspberry Pi, the on-screen keyboard doesn't automatically pop-out when entering a text field.
+  - This [issue](https://github.com/leukipp/touchkio/issues/4) also occurs in the default browser but as a current workaround you can use the side [widget](https://github.com/leukipp/touchkio/issues/16) to toggle the keyboard.
 - Hyperlinks that redirect the browser away from the main window are intentionally disabled.
   - This decision was made to maintain a clean design, as navigation buttons to move back and forth between different sites were not included.
 - On the terminal you may see some *ERROR:gbm_wrapper.cc* messages.
