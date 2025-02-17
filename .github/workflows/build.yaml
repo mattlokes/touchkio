@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install yarn
+        run: npm install --global yarn
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Make Dists
+        run: |
+          yarn electron-forge make --arch arm64,x64
+
+      - name: Artifact X64 Deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: touchkio_x64.deb
+          path: /home/runner/work/touchkio/touchkio/out/make/deb/x64/touchkio_*_x64.deb
+
+      - name: Artifact ARM64 Deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: touchkio_arm64.deb
+          path: /home/runner/work/touchkio/touchkio/out/make/deb/arm64/touchkio_*_arm64.deb
