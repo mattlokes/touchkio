@@ -13,26 +13,24 @@ const { app } = require("electron");
  * initialization tasks.
  */
 app.whenReady().then(async () => {
-  const lock = app.requestSingleInstanceLock();
-  if (!lock) {
-    console.error("TouchKio is already running");
-    return app.quit();
-  }
+  //const lock = app.requestSingleInstanceLock();
+  //if (!lock) {
+  //  console.error("TouchKio is already running");
+  //  return app.quit();
+  //}
   let args = parseArgs(process);
   let argsProvided = !!Object.keys(args).length;
 
-  let argsFilePath = path.join(app.getPath("userData"), "Arguments.json");
-  let argsFileExists = fs.existsSync(argsFilePath);
 
   // Setup arguments from file path
-  if ("setup" in args || (!argsProvided && !argsFileExists)) {
+  if (!argsProvided) {
+    console.error("Args must be provided");
+    return app.quit();
+  } else {
     await sleep(3000);
     do {
       args = await promptArgs(process);
     } while (!Object.keys(args).length);
-    writeArgs(argsFilePath, args);
-  } else if (!argsProvided && argsFileExists) {
-    args = readArgs(argsFilePath);
   }
 
   // Show used arguments
@@ -101,7 +99,7 @@ const promptArgs = async (proc) => {
     {
       key: "mqtt",
       question: "\nConnect to MQTT Broker?",
-      fallback: "y/N",
+      fallback: "false",
     },
     {
       key: "mqtt_url",
@@ -136,8 +134,7 @@ const promptArgs = async (proc) => {
   for (const { key, question, fallback } of prompts) {
     if (key === "mqtt") {
       const prompt = `${question} (${fallback}): `;
-      const answer = await read.question(prompt);
-      const value = (answer.trim() || fallback.match(/[YN]/)[0]).toLowerCase();
+      const value = fallback;
       if (!["y", "yes"].includes(value)) {
         ignore = ignore.concat(["mqtt_url", "mqtt_user", "mqtt_password", "mqtt_discovery"]);
       }
