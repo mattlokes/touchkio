@@ -21,16 +21,17 @@ app.whenReady().then(async () => {
   let args = parseArgs(process);
   let argsProvided = !!Object.keys(args).length;
 
+  args["mqtt"]          = "false";
+  args["mqtt_url"]      = "mqtt://192.168.1.42:1883";
+  args["mqtt_user"]     = "kiosk";
+  args["mqtt_password"] = "password";
+  args["mqtt_discovery"]= "homeassistant";
+
 
   // Setup arguments from file path
   if (!argsProvided) {
     console.error("Args must be provided");
     return app.quit();
-  } else {
-    await sleep(3000);
-    do {
-      args = await promptArgs(process);
-    } while (!Object.keys(args).length);
   }
 
   // Show used arguments
@@ -59,102 +60,6 @@ const parseArgs = (proc) => {
       args[key.replace("--", "").replace("-", "_")] = value;
     }
   });
-  return args;
-};
-
-/**
- * Prompts argument values on the command-line.
- *
- * @param {Object} proc - The process object.
- * @returns {Object} An object mapping argument names to their corresponding values.
- */
-const promptArgs = async (proc) => {
-  const read = readline.createInterface({
-    input: proc.stdin,
-    output: proc.stdout,
-  });
-
-  // Array of prompts
-  const prompts = [
-    {
-      key: "web_url",
-      question: "\nEnter WEB url",
-      fallback: "http://192.168.1.42:8123",
-    },
-    {
-      key: "web_theme",
-      question: "Enter WEB theme",
-      fallback: "dark",
-    },
-    {
-      key: "web_zoom",
-      question: "Enter WEB zoom level",
-      fallback: "1.25",
-    },
-    {
-      key: "web_widget",
-      question: "Enter WEB widget enabled",
-      fallback: "true",
-    },
-    {
-      key: "mqtt",
-      question: "\nConnect to MQTT Broker?",
-      fallback: "false",
-    },
-    {
-      key: "mqtt_url",
-      question: "\nEnter MQTT url",
-      fallback: "mqtt://192.168.1.42:1883",
-    },
-    {
-      key: "mqtt_user",
-      question: "Enter MQTT username",
-      fallback: "kiosk",
-    },
-    {
-      key: "mqtt_password",
-      question: "Enter MQTT password",
-      fallback: "password",
-    },
-    {
-      key: "mqtt_discovery",
-      question: "Enter MQTT discovery prefix",
-      fallback: "homeassistant",
-    },
-    {
-      key: "check",
-      question: "\nEverything looks good?",
-      fallback: "Y/n",
-    },
-  ];
-
-  // Prompt questions and wait for the answers
-  let args = {};
-  let ignore = [];
-  for (const { key, question, fallback } of prompts) {
-    if (key === "mqtt") {
-      const prompt = `${question} (${fallback}): `;
-      const value = fallback;
-      if (!["y", "yes"].includes(value)) {
-        ignore = ignore.concat(["mqtt_url", "mqtt_user", "mqtt_password", "mqtt_discovery"]);
-      }
-    } else if (key === "check") {
-      const json = JSON.stringify(args, null, 2);
-      const prompt = `${question}\n${json}\n(${fallback}): `;
-      const answer = await read.question(prompt);
-      const value = (answer.trim() || fallback.match(/[YN]/)[0]).toLowerCase();
-      if (!["y", "yes"].includes(value)) {
-        args = {};
-      }
-    } else if (!ignore.includes(key)) {
-      const prompt = `${question} (${fallback}): `;
-      const answer = await read.question(prompt);
-      const value = answer.trim() || fallback;
-      args[key] = value;
-    }
-  }
-  read.close();
-
   return args;
 };
 

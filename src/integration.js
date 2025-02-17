@@ -88,29 +88,29 @@ const init = async (args) => {
       INTEGRATION.status = "offline";
     });
 
-  // Update sensor states from notifiers
-  HARDWARE.display.notifiers.push(() => {
-    updateDisplay(INTEGRATION.client);
-  });
-  HARDWARE.keyboard.notifiers.push(() => {
-    updateKeyboard(INTEGRATION.client);
-  });
+  //// Update sensor states from notifiers
+  //HARDWARE.display.notifiers.push(() => {
+  //  updateDisplay(INTEGRATION.client);
+  //});
+  //HARDWARE.keyboard.notifiers.push(() => {
+  //  updateKeyboard(INTEGRATION.client);
+  //});
 
-  // Update time sensors periodically (30s)
-  setInterval(() => {
-    updateHeartbeat(INTEGRATION.client);
-    updateLastActive(INTEGRATION.client);
-  }, 30 * 1000);
+  //// Update time sensors periodically (30s)
+  //setInterval(() => {
+  //  updateHeartbeat(INTEGRATION.client);
+  //  updateLastActive(INTEGRATION.client);
+  //}, 30 * 1000);
 
-  // Update system sensors periodically (1min)
-  setInterval(() => {
-    update();
-  }, 60 * 1000);
+  //// Update system sensors periodically (1min)
+  //setInterval(() => {
+  //  update();
+  //}, 60 * 1000);
 
-  // Update package sensors periodically (60min)
-  setInterval(() => {
-    updatePackageUpgrades(INTEGRATION.client);
-  }, 3600 * 1000);
+  //// Update package sensors periodically (60min)
+  //setInterval(() => {
+  //  updatePackageUpgrades(INTEGRATION.client);
+  //}, 3600 * 1000);
 
   return true;
 };

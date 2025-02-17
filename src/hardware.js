@@ -91,7 +91,7 @@ const init = async (args) => {
   });
 
   // Check for display changes
-  setInterval(update, 500);
+  setInterval(update, 2000);
 
   return true;
 };
@@ -100,33 +100,7 @@ const init = async (args) => {
  * Updates the shared hardware properties.
  */
 const update = () => {
-  if (!HARDWARE.initialized) {
     return;
-  }
-
-  // Display status has changed
-  if (HARDWARE.support.displayStatus) {
-    const status = fs.readFileSync(`${HARDWARE.display.status.path}/dpms`, "utf8").trim();
-    if (status !== HARDWARE.display.status.value) {
-      console.log("Update Display Status:", getDisplayStatus());
-      HARDWARE.display.status.value = status;
-      HARDWARE.display.notifiers.forEach((notifier) => {
-        notifier();
-      });
-    }
-  }
-
-  // Display brightness has changed
-  if (HARDWARE.support.displayBrightness) {
-    const brightness = fs.readFileSync(`${HARDWARE.display.brightness.path}/brightness`, "utf8").trim();
-    if (brightness !== HARDWARE.display.brightness.value) {
-      console.log("Update Display Brightness:", getDisplayBrightness());
-      HARDWARE.display.brightness.value = brightness;
-      HARDWARE.display.notifiers.forEach((notifier) => {
-        notifier();
-      });
-    }
-  }
 };
 
 /**
