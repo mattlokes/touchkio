@@ -27,7 +27,6 @@ app.whenReady().then(async () => {
   args["mqtt_password"] = "password";
   args["mqtt_discovery"]= "homeassistant";
 
-
   // Setup arguments from file path
   if (!argsProvided) {
     console.error("Args must be provided");
@@ -38,7 +37,7 @@ app.whenReady().then(async () => {
   console.log(`Arguments: ${JSON.stringify(args, null, 2)}`);
 
   // Chained init functions
-  const chained = [webview.init, hardware.init, integration.init];
+  const chained = [webview.init, hardware.init];
   for (const init of chained) {
     if (!(await init(args))) {
       break;

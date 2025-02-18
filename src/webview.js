@@ -1,6 +1,6 @@
 const path = require("path");
 const hardware = require("./hardware");
-const integration = require("./integration");
+//const integration = require("./integration");
 const { app, screen, nativeTheme, ipcMain, BaseWindow, WebContentsView } = require("electron");
 
 global.WEBVIEW = global.WEBVIEW || {
@@ -106,7 +106,7 @@ const update = () => {
 
   // Update integration sensor
   console.log("Update Kiosk Status:", WEBVIEW.status);
-  integration.update();
+  //integration.update();
 };
 
 /**
@@ -178,7 +178,7 @@ const windowEvents = () => {
       WEBVIEW.pointer.time = now;
       if (Math.abs(now - then) / 1000 > 30) {
         console.log("Update Last Active");
-        integration.update();
+        //integration.update();
       }
     }
     WEBVIEW.pointer.position = posNew;
@@ -302,7 +302,7 @@ const appEvents = () => {
   process.on("SIGINT", app.quit);
   app.on("before-quit", () => {
     WEBVIEW.status = "Terminated";
-    integration.update();
+    //integration.update();
   });
 
   // Handle multiple instances
